@@ -1,4 +1,5 @@
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -11,7 +12,7 @@ public class Grid {
     private Random random;
 
     public Grid(int rows, int cols) {
-        this(rows,cols,System.currentTimeMillis());
+        this(rows, cols, System.currentTimeMillis());
     }
 
     public Grid(int rows, int cols, long seed) {
@@ -168,20 +169,42 @@ public class Grid {
 
     // Save the grid state to a CSV file
     public void saveGridToCSV(String filename, int step) {
-        try (FileWriter fileWriter = new FileWriter(filename, true)) {
-            fileWriter.write("Step " + step + "\n");
-            for (int i = 0; i < rows; i++) {
-                for (int j = 0; j < cols; j++) {
-                    WeatherCell cell = cells[i][j];
-                    fileWriter.write(cell.temperature + "," + cell.pressure + "," + cell.humidity);
-                    if (j < cols - 1) {
-                        fileWriter.write(",");
-                    }
-                }
-                fileWriter.write("\n");
+        File file = new File(filename);
+
+        // Ensure the file exists or can be created
+        try {
+            if (!file.exists()) {
+                file.createNewFile(); // Create the file if it does not exist
             }
         } catch (IOException e) {
-            System.err.println("Unable to open file " + filename);
+            System.err.println("Error creating file: " + filename);
+            e.printStackTrace();
+            return; // Exit the method as file creation failed
+        }
+
+        // Attempt to open and write to the file
+        for (int attempt = 0; attempt < 3; attempt++) { // Retry logic
+            try (FileWriter fileWriter = new FileWriter(file, true)) {
+                fileWriter.write("Step " + step + "\n");
+                for (int i = 0; i < rows; i++) {
+                    for (int j = 0; j < cols; j++) {
+                        WeatherCell cell = cells[i][j];
+                        fileWriter.write(cell.temperature + "," + cell.pressure + "," + cell.humidity);
+                        if (j < cols - 1) {
+                            fileWriter.write(",");
+                        }
+                    }
+                    fileWriter.write("\n");
+                }
+                // Successful write; exit the retry loop
+                return;
+            } catch (IOException e) {
+                System.err.println("Attempt " + (attempt + 1) + ": Unable to open file " + filename);
+                if (attempt == 2) {
+                    System.err.println("Failed after multiple attempts. Aborting write operation.");
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
@@ -235,7 +258,8 @@ public class Grid {
         }
     }
 
-    // Methods for boundary exchange (not directly applicable in Java multithreading)
+    // Methods for boundary exchange (not directly applicable in Java
+    // multithreading)
     public WeatherCell[] getRow(int rowIndex) {
         if (rowIndex >= 0 && rowIndex < rows) {
             return cells[rowIndex];

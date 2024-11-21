@@ -10,8 +10,7 @@ public class WeatherCell {
     public static final double SPECIFIC_HEAT_CAPACITY = 1005;   // J/(kg·K) for air
 
     // Random values for initialization
-    public WeatherCell() {
-        Random rand = new Random();
+    public WeatherCell(Random rand) {
         // Random temperature between 0°C and 30°C (in Kelvin)
         this.temperature = 273.15 + rand.nextDouble() * 30.0;
         // Random pressure around 100 kPa +/- 2500 Pa

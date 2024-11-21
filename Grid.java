@@ -1,13 +1,21 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.Random;
 
 public class Grid {
     private WeatherCell[][] cells;
     private int rows;
     private int cols;
+    private Random random;
 
     public Grid(int rows, int cols) {
+        this(rows,cols,System.currentTimeMillis());
+    }
+
+    public Grid(int rows, int cols, long seed) {
+        this.random = new Random(seed);
         this.rows = rows;
         this.cols = cols;
         cells = new WeatherCell[rows][cols];
@@ -16,7 +24,7 @@ public class Grid {
     public void initializeCells() {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                cells[i][j] = new WeatherCell();
+                cells[i][j] = new WeatherCell(this.random);
             }
         }
     }
@@ -174,6 +182,56 @@ public class Grid {
             }
         } catch (IOException e) {
             System.err.println("Unable to open file " + filename);
+        }
+    }
+
+    // Read the initial grid state from a CSV file
+    public void loadGridFromCSV(String filename) {
+        try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+            // Determine the dimensions of the grid
+            String line;
+            int rows = 0;
+            int cols = 0;
+
+            // Read the first line to determine the number of columns
+            if ((line = br.readLine()) != null) {
+                String[] values = line.split(",");
+                cols = values.length / 3; // Each cell has temperature, pressure, and humidity
+                rows++;
+            }
+
+            // Count the remaining rows
+            while ((line = br.readLine()) != null) {
+                rows++;
+            }
+
+            // Reinitialize the grid with the new dimensions
+            this.rows = rows;
+            this.cols = cols;
+            this.cells = new WeatherCell[rows][cols];
+
+            // Reset the BufferedReader to read the file again
+            br.close();
+            try (BufferedReader br2 = new BufferedReader(new FileReader(filename))) {
+                int row = 0;
+                while ((line = br2.readLine()) != null) {
+                    String[] values = line.split(",");
+                    for (int col = 0; col < cols; col++) {
+                        double temperature = Double.parseDouble(values[col * 3]);
+                        double pressure = Double.parseDouble(values[col * 3 + 1]);
+                        double humidity = Double.parseDouble(values[col * 3 + 2]);
+                        cells[row][col] = new WeatherCell(temperature, pressure, humidity);
+                    }
+                    row++;
+                }
+            }
+
+        } catch (IOException e) {
+            System.err.println("Error reading the grid from file: " + filename);
+            e.printStackTrace();
+        } catch (NumberFormatException e) {
+            System.err.println("Error parsing numerical values in file: " + filename);
+            e.printStackTrace();
         }
     }
 

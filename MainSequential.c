@@ -23,6 +23,10 @@ int main(int argc, char *argv[]) {
     // Initialize random number generator
     srand(time(NULL));
 
+    // Add timing variables
+    clock_t start_time = clock();
+    time_t start_wall = time(NULL);
+
     // Create and initialize grid
     Grid* grid = Grid_new(rows, cols);
     if (grid == NULL) {
@@ -42,6 +46,16 @@ int main(int argc, char *argv[]) {
         // Grid_display_grid(grid);  // Optional, commented out as in Java
         Grid_save_grid_to_csv(grid, filename, i + 1);
     }
+
+    // Calculate and print timing results
+    clock_t end_time = clock();
+    time_t end_wall = time(NULL);
+    
+    double cpu_time_used = ((double) (end_time - start_time)) / CLOCKS_PER_SEC;
+    double wall_time_used = difftime(end_wall, start_wall);
+    
+    printf("CPU Time used: %.2f seconds\n", cpu_time_used);
+    printf("Wall clock time: %.2f seconds\n", wall_time_used);
 
     // Clean up
     Grid_destroy(grid);

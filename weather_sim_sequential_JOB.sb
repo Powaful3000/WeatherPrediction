@@ -1,0 +1,20 @@
+#!/bin/bash
+#SBATCH --job-name="weather_sim_sequential"
+#SBATCH --output="weather_sim_sequential.%j.%N.out"
+#SBATCH --partition=compute
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=24
+#SBATCH --mem=4G
+#SBATCH --account=isu102
+#SBATCH --export=ALL
+#SBATCH -t 00:30:00
+
+#Run the job
+./weather_sim_sequential 100 100 100
+
+./weather_sim_sequential 250 250 100
+
+./weather_sim_sequential 500 500 100
+
+./weather_sim_sequential 1000 1000 100
